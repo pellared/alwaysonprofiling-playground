@@ -78,7 +78,14 @@ void BogoSort()
 
 void HttpHandler(HttpListenerContext ctx)
 {
-    Thread.Sleep(TimeSpan.FromSeconds(20));
+    using var evnt = new AutoResetEvent(false);
+    Task.Run(() =>
+    {
+        Thread.Sleep(TimeSpan.FromSeconds(20));
+        evnt.Set();
+    });
+    evnt.WaitOne();
+
     ctx.Response.ContentType = "text/plain";
     var buffer = System.Text.Encoding.UTF8.GetBytes("OK");
     ctx.Response.ContentLength64 = buffer.LongLength;

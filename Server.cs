@@ -36,7 +36,7 @@ public class Server : IDisposable
             try
             {
                 var ctx = _listener.GetContext();
-                _requestHandler(ctx);
+                Task.Run(() => HandleHttpRequest(ctx));
             }
             catch (HttpListenerException)
             {
@@ -56,6 +56,32 @@ public class Server : IDisposable
             {
                 // we don't care about any exception when listener is stopped
             }
+        }
+    }
+
+    private void HandleHttpRequest(HttpListenerContext ctx)
+    {
+        try
+        {
+            _requestHandler(ctx);
+        }
+        catch (HttpListenerException)
+        {
+            // listener was stopped,
+            // ignore to let the loop end and the method return
+        }
+        catch (ObjectDisposedException)
+        {
+            // the response has been already disposed.
+        }
+        catch (InvalidOperationException)
+        {
+            // this can occur when setting Response.ContentLength64, with the framework claiming that the response has already been submitted
+            // for now ignore, and we'll see if this introduces downstream issues
+        }
+        catch (Exception) when (!_listener.IsListening)
+        {
+            // we don't care about any exception when listener is stopped
         }
     }
 }
