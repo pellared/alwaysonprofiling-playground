@@ -1,4 +1,7 @@
-﻿while (true)
+﻿var rnd = new Random();
+using var srv = new Server(HttpHandler);
+
+while (true)
 {
     Console.WriteLine("RunTasks for Wait...");
     var tasks = RunTasks();
@@ -41,17 +44,24 @@ Task[] RunTasks()
         BogoValueTAsync().AsTask()
     );
 
+    tasks.Add(Task.Run(
+        () => HttpRequestAsync().Wait()
+    ));
+    tasks.Add(Task.Run(
+        async () => await HttpRequestAsync()
+    ));
+    tasks.Add(HttpRequestAsync());
+
     return tasks.ToArray();
 }
 
 Task BogoAsync() => Task.Run(BogoSort);
 
 Task<int> BogoTAsync() => Task.Run<int>(() => { BogoSort(); return 0; });
-async ValueTask<int>  BogoValueTAsync() => await BogoTAsync();
+async ValueTask<int> BogoValueTAsync() => await BogoTAsync();
 
 void BogoSort()
 {
-    var rnd = new Random();
     var list = new List<int>();
     var count = 11;
     for (int i = 0; i < count; i++)
@@ -66,8 +76,23 @@ void BogoSort()
     }
 }
 
+void HttpHandler(HttpListenerContext ctx)
+{
+    Thread.Sleep(TimeSpan.FromSeconds(20));
+    ctx.Response.ContentType = "text/plain";
+    var buffer = System.Text.Encoding.UTF8.GetBytes("OK");
+    ctx.Response.ContentLength64 = buffer.LongLength;
+    ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+    ctx.Response.Close();
+}
 
-
-
-
-
+async Task<string> HttpRequestAsync()
+{
+    using (new Transaction("Http.Request"))
+    {
+        var response = await new HttpClient().GetAsync(srv.Url);
+        var content = await response.Content.ReadAsStringAsync();
+        return content;
+    }
+}

@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <Using Include="System.Diagnostics" />
+    <Using Include="System.Net" />
   </ItemGroup>
 
   <ItemGroup Condition="$(TargetFramework.StartsWith('net4'))">
