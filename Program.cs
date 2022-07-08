@@ -78,20 +78,23 @@ void BogoSort()
 
 void HttpHandler(HttpListenerContext ctx)
 {
-    using var evnt = new AutoResetEvent(false);
-    Task.Run(() =>
+    using (new Transaction("Http.Handler"))
     {
-        Thread.Sleep(TimeSpan.FromSeconds(20));
-        evnt.Set();
-    });
-    evnt.WaitOne();
+        using var evnt = new AutoResetEvent(false);
+        Task.Run(() =>
+        {
+            Thread.Sleep(TimeSpan.FromSeconds(20));
+            evnt.Set();
+        });
+        evnt.WaitOne();
 
-    ctx.Response.ContentType = "text/plain";
-    var buffer = System.Text.Encoding.UTF8.GetBytes("OK");
-    ctx.Response.ContentLength64 = buffer.LongLength;
-    ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
-    ctx.Response.StatusCode = (int)HttpStatusCode.OK;
-    ctx.Response.Close();
+        ctx.Response.ContentType = "text/plain";
+        var buffer = System.Text.Encoding.UTF8.GetBytes("OK");
+        ctx.Response.ContentLength64 = buffer.LongLength;
+        ctx.Response.OutputStream.Write(buffer, 0, buffer.Length);
+        ctx.Response.StatusCode = (int)HttpStatusCode.OK;
+        ctx.Response.Close();
+    }
 }
 
 async Task<string> HttpRequestAsync()
