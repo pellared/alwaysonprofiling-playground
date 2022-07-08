@@ -7,6 +7,7 @@ exploratory testing of
 This applications:
 
 - uses `async` code in lots of places (threads and continuations are everwhere)
-- makes CPU bound transactions called `Bogo.Sort`
+- makes CPU bound transactions called `Sort`
+  - `SORT_LEN` env var can be used to control the length of list to sort; default: `100000000`
 - makes network I/O bound transactions called `Http.Request`
 - makes network I/O bound transactions called `Http.Handler`

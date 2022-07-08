@@ -23,25 +23,25 @@ Task[] RunTasks()
     var tasks = new List<Task>();
 
     tasks.Add(Task.Run(
-        () => BogoAsync().Wait()
+        () => Async().Wait()
     ));
     tasks.Add(Task.Run(
-        async () => await BogoAsync()
+        async () => await Async()
     ));
     tasks.Add(Task.Run(
-        () => BogoTAsync().Result
+        () => TAsync().Result
     ));
     tasks.Add(Task.Run(
-        async () => await BogoTAsync()
+        async () => await TAsync()
     ));
     tasks.Add(Task.Run(
-        () => BogoValueTAsync().Result
+        () => ValueTAsync().Result
     ));
     tasks.Add(Task.Run(
-        async () => await BogoValueTAsync()
+        async () => await ValueTAsync()
     ));
     tasks.Add(
-        BogoValueTAsync().AsTask()
+        ValueTAsync().AsTask()
     );
 
     tasks.Add(Task.Run(
@@ -55,24 +55,30 @@ Task[] RunTasks()
     return tasks.ToArray();
 }
 
-Task BogoAsync() => Task.Run(BogoSort);
+Task Async() => Task.Run(Sort);
 
-Task<int> BogoTAsync() => Task.Run<int>(() => { BogoSort(); return 0; });
-async ValueTask<int> BogoValueTAsync() => await BogoTAsync();
+Task<int> TAsync() => Task.Run<int>(() => { Sort(); return 0; });
+async ValueTask<int> ValueTAsync() => await TAsync();
 
-void BogoSort()
+void Sort()
 {
     var list = new List<int>();
-    var count = 11;
+    var count = 100000000;
+    var len = Environment.GetEnvironmentVariable("SORT_LEN");
+    if (!string.IsNullOrEmpty(len))
+    {
+        count = int.Parse(len);
+    }
+    
     for (int i = 0; i < count; i++)
     {
         var val = rnd.Next();
         list.Add(val);
     }
 
-    using (new Transaction("Bogo.Sort"))
+    using (new Transaction("Sort"))
     {
-        Bogo.Sort(list);
+        list.Sort();
     }
 }
 
